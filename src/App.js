@@ -194,6 +194,10 @@ function App() {
       tabIndex={0}
       onKeyDown={identifyKeyPress}
     >
+      <div className="stats-container">
+        <div className="score-container">sljskflj</div>
+        <div className="high-score-container">dfdffdf </div>
+      </div>
       <div className="play-area">{mySquares}</div>
     </div>
   );
