@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import "./style.css";
 import React, { useState } from "react";
 import Squares from "./squares";
+import Lost from "./lost";
 
 function App() {
   const [gameMatrix, setGameMatrix] = useState([
@@ -10,6 +11,10 @@ function App() {
     [0, 0, 0, 0],
     [0, 0, 0, 0],
   ]);
+
+  const [gameScore, setGameScore] = useState(0);
+  const [gameHighScore, setGameHighScore] = useState(0);
+  const [youLost, setYouLost] = useState(false);
 
   let listOfEmptySpace = [];
 
@@ -24,9 +29,6 @@ function App() {
   }
 
   function identifyKeyPress(event) {
-    console.log(
-      `the key you pressed is ${event.key} with keycode ${event.keyCode}`
-    );
     let key = event.key;
     if (event.key === "ArrowRight" || event.key === "ArrowDown") {
       userPressesRightArrow(key);
@@ -37,6 +39,7 @@ function App() {
 
   function userPressesLeftArrow(key) {
     const temp = gameMatrix;
+    let score = 0;
 
     if (key === "ArrowUp") {
       for (let i = 0; i < 4; i++) {
@@ -54,7 +57,10 @@ function App() {
 
       for (let j = 1; j < 4; j++) {
         if (temp[i][j] !== 0 && temp[i][j] === rem) {
+          score += temp[i][j] + temp[i][remindex];
+          console.log(`${temp[i][j]} , ${temp[i][remindex]}`);
           temp[i][remindex] = temp[i][j] + temp[i][remindex];
+          console.log(score);
           temp[i][j] = 0;
           rem = temp[i][j];
         } else if (temp[i][j] !== rem) {
@@ -88,13 +94,19 @@ function App() {
         }
       }
     }
-
+    // setGameHighScore(gameScore >= gameHighScore ? gameScore: gameHighScore);
+    setGameScore(gameScore + score);
+    setGameHighScore(
+      gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
+    );
+    console.log("UpLeft", gameScore);
     setGameMatrix(temp);
     insertingNewElement();
   }
 
   function userPressesRightArrow(key) {
     const temp = gameMatrix;
+    let score = 0;
 
     if (key === "ArrowDown") {
       for (let i = 0; i < 4; i++) {
@@ -114,7 +126,10 @@ function App() {
 
       for (let j = temp[i].length - 2; j >= 0; j--) {
         if (temp[i][j] !== 0 && temp[i][j] === rem) {
+          score += temp[i][j] + temp[i][remindex];
+          console.log(`${temp[i][j]} , ${temp[i][remindex]}`);
           temp[i][remindex] = temp[i][j] + temp[i][remindex];
+          console.log(score);
           temp[i][j] = 0;
           rem = temp[i][j];
         } else if (temp[i][j] !== rem) {
@@ -149,14 +164,29 @@ function App() {
       }
     }
 
+    // setGameHighScore(gameScore >= gameHighScore ? gameScore: gameHighScore);
+    setGameScore(gameScore + score);
+    setGameHighScore(
+      gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
+    );
+    console.log("DownRight", gameScore);
     setGameMatrix(temp);
     insertingNewElement();
   }
+
+  // let lostScreen = () => {
+  //   return <Lost />;
+  // };
 
   function insertingNewElement() {
     let randomValue = Math.random();
     gettEmptySpace(gameMatrix);
     let emptySpaceListLength = listOfEmptySpace.length - 1;
+
+    if (emptySpaceListLength <= 0) {
+      setYouLost(true);
+      return;
+    }
 
     let randomNum = Math.floor(
       Math.random() * (emptySpaceListLength - 0 + 1) + 0
@@ -172,10 +202,24 @@ function App() {
     setGameMatrix(newMat);
   }
 
+  function resetGame() {
+    setGameMatrix([
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ]);
+    setGameScore(0);
+    insertingNewElement();
+    setYouLost(false)
+    // listOfEmptySpace=[]
+  }
+
   const ref = useRef(null);
 
   useEffect(() => {
     insertingNewElement();
+    // insertingNewElement();
     ref.current.focus();
   }, []);
 
@@ -185,8 +229,6 @@ function App() {
     });
   });
 
-  // console.log(listOfEmptySpace);
-
   return (
     <div
       className="main-container"
@@ -194,11 +236,20 @@ function App() {
       tabIndex={0}
       onKeyDown={identifyKeyPress}
     >
-      <div className="stats-container">
-        <div className="score-container">sljskflj</div>
-        <div className="high-score-container">dfdffdf </div>
+      {youLost && <Lost />}
+      <div className="content-area">
+        <div className="game-title">2048</div>
+        <div className="stats-container">
+          <div className="stats">
+            <div className="score">SCORE: {gameScore}</div>
+            <div className="high-score">HIGH SCORE: {gameHighScore}</div>
+          </div>
+          <div className="new-game-container" onClick={resetGame}>
+            New Game
+          </div>
+        </div>
+        <div className="play-area">{mySquares}</div>
       </div>
-      <div className="play-area">{mySquares}</div>
     </div>
   );
 }
