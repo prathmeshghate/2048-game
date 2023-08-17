@@ -37,19 +37,19 @@ function App() {
     }
   }
 
-  function userPressesLeftArrow(key) {
-    const temp = gameMatrix;
-    let score = 0;
-
-    if (key === "ArrowUp") {
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < i; j++) {
-          const tmp = temp[i][j];
-          temp[i][j] = temp[j][i];
-          temp[j][i] = tmp;
-        }
+  function transpose(temp) {
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < i; j++) {
+        const tmp = temp[i][j];
+        temp[i][j] = temp[j][i];
+        temp[j][i] = tmp;
       }
     }
+    return temp;
+  }
+
+  function userPressesLeftArrow(temp) {
+    let score = 0;
 
     for (let i = 0; i < 4; i++) {
       let rem = temp[i][0];
@@ -58,9 +58,7 @@ function App() {
       for (let j = 1; j < 4; j++) {
         if (temp[i][j] !== 0 && temp[i][j] === rem) {
           score += temp[i][j] + temp[i][remindex];
-          console.log(`${temp[i][j]} , ${temp[i][remindex]}`);
           temp[i][remindex] = temp[i][j] + temp[i][remindex];
-          console.log(score);
           temp[i][j] = 0;
           rem = temp[i][j];
         } else if (temp[i][j] !== rem) {
@@ -85,40 +83,19 @@ function App() {
       }
     }
 
-    if (key === "ArrowUp") {
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < i; j++) {
-          const tmp = temp[i][j];
-          temp[i][j] = temp[j][i];
-          temp[j][i] = tmp;
-        }
-      }
-    }
-    // setGameHighScore(gameScore >= gameHighScore ? gameScore: gameHighScore);
     setGameScore(gameScore + score);
     setGameHighScore(
       gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
     );
-    console.log("UpLeft", gameScore);
+
+    return temp;
     setGameMatrix(temp);
     insertingNewElement();
   }
 
-  function userPressesRightArrow(key) {
-    const temp = gameMatrix;
+  function userPressesRightArrow(temp) {
     let score = 0;
-
-    if (key === "ArrowDown") {
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < i; j++) {
-          const tmp = temp[i][j];
-          temp[i][j] = temp[j][i];
-          temp[j][i] = tmp;
-        }
-      }
-    }
-
-    // let noofrow = temp.length;
+    console.log("got hit in right");
 
     for (let i = 0; i < 4; i++) {
       let rem = temp[i][temp[i].length - 1];
@@ -127,9 +104,7 @@ function App() {
       for (let j = temp[i].length - 2; j >= 0; j--) {
         if (temp[i][j] !== 0 && temp[i][j] === rem) {
           score += temp[i][j] + temp[i][remindex];
-          console.log(`${temp[i][j]} , ${temp[i][remindex]}`);
           temp[i][remindex] = temp[i][j] + temp[i][remindex];
-          console.log(score);
           temp[i][j] = 0;
           rem = temp[i][j];
         } else if (temp[i][j] !== rem) {
@@ -154,39 +129,19 @@ function App() {
       }
     }
 
-    if (key === "ArrowDown") {
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < i; j++) {
-          const tmp = temp[i][j];
-          temp[i][j] = temp[j][i];
-          temp[j][i] = tmp;
-        }
-      }
-    }
-
-    // setGameHighScore(gameScore >= gameHighScore ? gameScore: gameHighScore);
     setGameScore(gameScore + score);
     setGameHighScore(
       gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
     );
-    console.log("DownRight", gameScore);
+    return temp;
     setGameMatrix(temp);
     insertingNewElement();
   }
 
-  // let lostScreen = () => {
-  //   return <Lost />;
-  // };
-
-  function insertingNewElement() {
+  function insertingNewElement(temp) {
     let randomValue = Math.random();
-    gettEmptySpace(gameMatrix);
+    gettEmptySpace(temp);
     let emptySpaceListLength = listOfEmptySpace.length - 1;
-
-    if (emptySpaceListLength <= 0) {
-      setYouLost(true);
-      return;
-    }
 
     let randomNum = Math.floor(
       Math.random() * (emptySpaceListLength - 0 + 1) + 0
@@ -195,11 +150,11 @@ function App() {
     let emptySpace = listOfEmptySpace[randomNum];
     let generatedElement = randomValue > 0.5 ? 2 : 4;
 
-    const newMat = [...gameMatrix];
+    const newMat = [...temp];
     const newRow = [...newMat[emptySpace[0]]];
     newRow[emptySpace[1]] = generatedElement;
     newMat[emptySpace[0]] = newRow;
-    setGameMatrix(newMat);
+    return newMat;
   }
 
   function resetGame() {
@@ -211,15 +166,15 @@ function App() {
     ]);
     setGameScore(0);
     insertingNewElement();
-    setYouLost(false)
-    // listOfEmptySpace=[]
+    setYouLost(false);
   }
 
   const ref = useRef(null);
 
   useEffect(() => {
-    insertingNewElement();
-    // insertingNewElement();
+    let temp = insertingNewElement(gameMatrix);
+    temp = insertingNewElement(temp);
+    setGameMatrix(temp);
     ref.current.focus();
   }, []);
 
@@ -229,13 +184,38 @@ function App() {
     });
   });
 
+  function workFlow(event) {
+    let beforeState = [];
+    gameMatrix.forEach(row => {
+      let hold = [];
+      row.forEach(ele=>hold.push(ele));
+      beforeState.push(hold);
+    });
+    let temp = beforeState;
+
+    if (event.key === "ArrowUp") {
+      temp = transpose(temp);
+      temp = userPressesLeftArrow(temp);
+      temp = transpose(temp);
+    } else if (event.key === "ArrowRight") {
+      temp = userPressesRightArrow(temp);
+    } else if (event.key === "ArrowDown") {
+      temp = transpose(temp);
+      temp = userPressesRightArrow(temp);
+      temp = transpose(temp);
+    } else if (event.key === "ArrowLeft") {
+      temp = userPressesLeftArrow(temp);
+    }
+    console.log("beforeState", beforeState, "temp", temp);
+
+    if (gameMatrix !== temp) {
+      temp = insertingNewElement(temp);
+    }
+    setGameMatrix(temp);
+  }
+
   return (
-    <div
-      className="main-container"
-      ref={ref}
-      tabIndex={0}
-      onKeyDown={identifyKeyPress}
-    >
+    <div className="main-container" ref={ref} tabIndex={0} onKeyDown={workFlow}>
       {youLost && <Lost />}
       <div className="content-area">
         <div className="game-title">2048</div>
