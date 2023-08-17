@@ -89,13 +89,10 @@ function App() {
     );
 
     return temp;
-    setGameMatrix(temp);
-    insertingNewElement();
   }
 
   function userPressesRightArrow(temp) {
     let score = 0;
-    console.log("got hit in right");
 
     for (let i = 0; i < 4; i++) {
       let rem = temp[i][temp[i].length - 1];
@@ -134,8 +131,6 @@ function App() {
       gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
     );
     return temp;
-    setGameMatrix(temp);
-    insertingNewElement();
   }
 
   function insertingNewElement(temp) {
@@ -154,6 +149,7 @@ function App() {
     const newRow = [...newMat[emptySpace[0]]];
     newRow[emptySpace[1]] = generatedElement;
     newMat[emptySpace[0]] = newRow;
+    console.log("matrix with just inserted ele", newMat);
     return newMat;
   }
 
@@ -184,14 +180,35 @@ function App() {
     });
   });
 
-  function workFlow(event) {
-    let beforeState = [];
-    gameMatrix.forEach(row => {
-      let hold = [];
-      row.forEach(ele=>hold.push(ele));
-      beforeState.push(hold);
+  function makeCopy() {
+    let temp = [];
+    gameMatrix.forEach((row) => {
+      let newRow = [];
+      row.forEach((ele) => newRow.push(ele));
+      temp.push(newRow);
     });
-    let temp = beforeState;
+    return temp;
+  }
+
+  function checkTwoMatrixEqual(beforeState, temp) {
+    let flag = true; //two matrix are equal
+
+    for (let i = 0; i < beforeState.length; i++) {
+      for (let j = 0; j < beforeState[0].length; j++) {
+        if (beforeState[i][j] !== temp[i][j]) {
+          flag = false; // Values at position (i, j) are not equal
+          break;
+        }
+      }
+    }
+
+    return flag;
+  }
+
+  function workFlow(event) {
+    let beforeState = makeCopy();
+
+    let temp = makeCopy();
 
     if (event.key === "ArrowUp") {
       temp = transpose(temp);
@@ -206,9 +223,9 @@ function App() {
     } else if (event.key === "ArrowLeft") {
       temp = userPressesLeftArrow(temp);
     }
-    console.log("beforeState", beforeState, "temp", temp);
 
-    if (gameMatrix !== temp) {
+    console.log("beforeState", beforeState, "temp", temp);
+    if (!checkTwoMatrixEqual(beforeState, temp)) {
       temp = insertingNewElement(temp);
     }
     setGameMatrix(temp);
