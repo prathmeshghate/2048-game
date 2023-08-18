@@ -154,14 +154,16 @@ function App() {
   }
 
   function resetGame() {
-    setGameMatrix([
+    let emptyMatrix =[
       [0, 0, 0, 0],
       [0, 0, 0, 0],
       [0, 0, 0, 0],
       [0, 0, 0, 0],
-    ]);
+    ];
     setGameScore(0);
-    insertingNewElement();
+    let temp=insertingNewElement(emptyMatrix);
+    temp=insertingNewElement(temp);
+    setGameMatrix(temp);
     setYouLost(false);
   }
 
@@ -180,14 +182,14 @@ function App() {
     });
   });
 
-  function makeCopy() {
-    let temp = [];
-    gameMatrix.forEach((row) => {
+  function makeCopy(currMatrix) {
+    let matrixCopy = [];
+    currMatrix.forEach((row) => {
       let newRow = [];
       row.forEach((ele) => newRow.push(ele));
-      temp.push(newRow);
+      matrixCopy.push(newRow);
     });
-    return temp;
+    return matrixCopy;
   }
 
   function checkTwoMatrixEqual(beforeState, temp) {
@@ -205,10 +207,37 @@ function App() {
     return flag;
   }
 
-  function workFlow(event) {
-    let beforeState = makeCopy();
 
-    let temp = makeCopy();
+  function lostOrNot(currMatrix){
+    let temp=makeCopy(currMatrix)
+
+    let flag = false // not lost
+    let initialImage = makeCopy(gameMatrix)
+    
+    //up
+    let newCopy = transpose(temp)
+    newCopy = userPressesLeftArrow(newCopy)
+    newCopy = transpose(newCopy)
+    //right
+    newCopy=userPressesRightArrow(newCopy)
+    //down
+    newCopy = transpose(newCopy)
+    newCopy=userPressesRightArrow(newCopy)
+    newCopy = transpose(newCopy)
+    // left
+    newCopy=userPressesLeftArrow(newCopy)
+    console.log("in lost or not initialimage",initialImage,"newCopy",newCopy)
+    
+    if(checkTwoMatrixEqual(initialImage,newCopy)){
+      flag=true
+    }
+    return flag
+  }
+
+  function workFlow(event) {
+    let beforeState = makeCopy(gameMatrix);
+
+    let temp = makeCopy(gameMatrix);
 
     if (event.key === "ArrowUp") {
       temp = transpose(temp);
@@ -227,6 +256,11 @@ function App() {
     console.log("beforeState", beforeState, "temp", temp);
     if (!checkTwoMatrixEqual(beforeState, temp)) {
       temp = insertingNewElement(temp);
+    }
+
+    // lost check
+    if(lostOrNot(temp)){
+      setYouLost(true)
     }
     setGameMatrix(temp);
   }
