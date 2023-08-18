@@ -3,6 +3,7 @@ import "./style.css";
 import React, { useState } from "react";
 import Squares from "./squares";
 import Lost from "./lost";
+import Win from "./Won";
 
 function App() {
   const [gameMatrix, setGameMatrix] = useState([
@@ -12,9 +13,17 @@ function App() {
     [0, 0, 0, 0],
   ]);
 
+  // const [gameMatrix, setGameMatrix] = useState([
+  //   [1024, 1028, 3, 4],
+  //   [8, 7, 6, 5],
+  //   [9, 1, 2, 3],
+  //   [0, 0, 5, 4],
+  // ]);
+
   const [gameScore, setGameScore] = useState(0);
   const [gameHighScore, setGameHighScore] = useState(0);
   const [youLost, setYouLost] = useState(false);
+  const [youWon, setYouWon] = useState(false);
 
   let listOfEmptySpace = [];
 
@@ -25,15 +34,6 @@ function App() {
           listOfEmptySpace.push([i, j]);
         }
       }
-    }
-  }
-
-  function identifyKeyPress(event) {
-    let key = event.key;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-      userPressesRightArrow(key);
-    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      userPressesLeftArrow(key);
     }
   }
 
@@ -48,7 +48,7 @@ function App() {
     return temp;
   }
 
-  function userPressesLeftArrow(temp) {
+  function userPressesLeftArrow(temp, flag) {
     let score = 0;
 
     for (let i = 0; i < 4; i++) {
@@ -82,16 +82,17 @@ function App() {
         }
       }
     }
-
-    setGameScore(gameScore + score);
-    setGameHighScore(
-      gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
-    );
+    if (flag) {
+      setGameScore(gameScore + score);
+      setGameHighScore(
+        gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
+      );
+    }
 
     return temp;
   }
 
-  function userPressesRightArrow(temp) {
+  function userPressesRightArrow(temp, flag) {
     let score = 0;
 
     for (let i = 0; i < 4; i++) {
@@ -125,11 +126,12 @@ function App() {
         }
       }
     }
-
-    setGameScore(gameScore + score);
-    setGameHighScore(
-      gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
-    );
+    if (flag) {
+      setGameScore(gameScore + score);
+      setGameHighScore(
+        gameScore + score >= gameHighScore ? gameScore + score : gameHighScore
+      );
+    }
     return temp;
   }
 
@@ -149,22 +151,22 @@ function App() {
     const newRow = [...newMat[emptySpace[0]]];
     newRow[emptySpace[1]] = generatedElement;
     newMat[emptySpace[0]] = newRow;
-    console.log("matrix with just inserted ele", newMat);
     return newMat;
   }
 
   function resetGame() {
-    let emptyMatrix =[
+    let emptyMatrix = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
       [0, 0, 0, 0],
       [0, 0, 0, 0],
     ];
     setGameScore(0);
-    let temp=insertingNewElement(emptyMatrix);
-    temp=insertingNewElement(temp);
+    let temp = insertingNewElement(emptyMatrix);
+    temp = insertingNewElement(temp);
     setGameMatrix(temp);
     setYouLost(false);
+    setYouWon(false);
   }
 
   const ref = useRef(null);
@@ -192,6 +194,18 @@ function App() {
     return matrixCopy;
   }
 
+  function winCheck(currMat) {
+    let flag = false;
+
+    let mat = makeCopy(currMat);
+
+    flag = mat.some((row) => {
+      return row.some((ele) => ele === 2048);
+    });
+
+    return flag;
+  }
+
   function checkTwoMatrixEqual(beforeState, temp) {
     let flag = true; //two matrix are equal
 
@@ -207,31 +221,29 @@ function App() {
     return flag;
   }
 
+  function lostOrNot(currMatrix) {
+    let temp = makeCopy(currMatrix);
 
-  function lostOrNot(currMatrix){
-    let temp=makeCopy(currMatrix)
+    let flag = false; // not lost
+    let initialImage = makeCopy(currMatrix);
 
-    let flag = false // not lost
-    let initialImage = makeCopy(gameMatrix)
-    
     //up
-    let newCopy = transpose(temp)
-    newCopy = userPressesLeftArrow(newCopy)
-    newCopy = transpose(newCopy)
+    let newCopy = transpose(temp);
+    newCopy = userPressesLeftArrow(newCopy, false);
+    newCopy = transpose(newCopy);
     //right
-    newCopy=userPressesRightArrow(newCopy)
+    newCopy = userPressesRightArrow(newCopy, false);
     //down
-    newCopy = transpose(newCopy)
-    newCopy=userPressesRightArrow(newCopy)
-    newCopy = transpose(newCopy)
+    newCopy = transpose(newCopy);
+    newCopy = userPressesRightArrow(newCopy, false);
+    newCopy = transpose(newCopy);
     // left
-    newCopy=userPressesLeftArrow(newCopy)
-    console.log("in lost or not initialimage",initialImage,"newCopy",newCopy)
-    
-    if(checkTwoMatrixEqual(initialImage,newCopy)){
-      flag=true
+    newCopy = userPressesLeftArrow(newCopy, false);
+
+    if (checkTwoMatrixEqual(initialImage, newCopy)) {
+      flag = true;
     }
-    return flag
+    return flag;
   }
 
   function workFlow(event) {
@@ -241,33 +253,37 @@ function App() {
 
     if (event.key === "ArrowUp") {
       temp = transpose(temp);
-      temp = userPressesLeftArrow(temp);
+      temp = userPressesLeftArrow(temp, true);
       temp = transpose(temp);
     } else if (event.key === "ArrowRight") {
-      temp = userPressesRightArrow(temp);
+      temp = userPressesRightArrow(temp, true);
     } else if (event.key === "ArrowDown") {
       temp = transpose(temp);
-      temp = userPressesRightArrow(temp);
+      temp = userPressesRightArrow(temp, true);
       temp = transpose(temp);
     } else if (event.key === "ArrowLeft") {
-      temp = userPressesLeftArrow(temp);
+      temp = userPressesLeftArrow(temp, true);
     }
 
-    console.log("beforeState", beforeState, "temp", temp);
     if (!checkTwoMatrixEqual(beforeState, temp)) {
       temp = insertingNewElement(temp);
     }
 
-    // lost check
-    if(lostOrNot(temp)){
-      setYouLost(true)
-    }
     setGameMatrix(temp);
+    // lost check
+    if (lostOrNot(temp)) {
+      setYouLost(true);
+    }
+
+    if (winCheck(temp)) {
+      setYouWon(true);
+    }
   }
 
   return (
     <div className="main-container" ref={ref} tabIndex={0} onKeyDown={workFlow}>
-      {youLost && <Lost />}
+      {youLost && <Lost clickChange={resetGame} />}
+      {youWon && <Win clickChange={resetGame} />}
       <div className="content-area">
         <div className="game-title">2048</div>
         <div className="stats-container">
