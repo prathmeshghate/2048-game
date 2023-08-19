@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/2048-game/static/css/main.94a48bd4.css",
+    "main.js": "/2048-game/static/js/main.16ca8c67.js",
+    "static/media/peakpx.jpg": "/2048-game/static/media/peakpx.eedfda31c08572c192e8.jpg",
+    "index.html": "/2048-game/index.html",
+    "main.94a48bd4.css.map": "/2048-game/static/css/main.94a48bd4.css.map",
+    "main.16ca8c67.js.map": "/2048-game/static/js/main.16ca8c67.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.94a48bd4.css",
+    "static/js/main.16ca8c67.js"
+  ]
+}
